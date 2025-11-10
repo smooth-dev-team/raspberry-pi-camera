@@ -1,0 +1,103 @@
+# Raspberry Pi Zero 2 W Camera Configuration
+# This file is configured on each Raspberry Pi during installation
+
+# Device Settings
+device:
+  # Unique identifier for this Raspberry Pi
+  station_id: "rasberrysmoothbox01"
+
+  # Parking spot number that this camera monitors (車庫番号)
+  # Range: 1 to 9999
+  # This value is set during device installation by admin
+  spot_number: 12
+
+# NVIDIA Jetson Orin Settings (where to send images)
+nvidia:
+  ip_address: "192.168.1.100"  # NVIDIA Jetson Orin IP address
+  port: 8090  # Port for receiving images
+  protocol: "http"  # http or tcp
+  endpoint: "/receive_image"  # HTTP endpoint (if using HTTP)
+
+# Camera Settings
+camera:
+  # Raspberry Pi Camera Module settings
+  resolution:
+    width: 1920
+    height: 1080
+  framerate: 30
+  rotation: 0  # 0, 90, 180, or 270
+
+  # Capture settings
+  brightness: 50  # 0-100
+  contrast: 0  # -100 to 100
+  saturation: 0  # -100 to 100
+
+  # Image format for sending to NVIDIA
+  format: "jpeg"
+  quality: 85  # JPEG quality 1-100
+
+# Time-of-Flight Sensor Settings (VL53L1X)
+tof_sensor:
+  enabled: true
+
+  # I2C Settings
+  i2c_address: 0x29  # Default VL53L1X address
+  i2c_bus: 1  # /dev/i2c-1
+
+  # Distance thresholds (in millimeters)
+  thresholds:
+    vehicle_present_mm: 1000  # Distance below this = vehicle present
+    vehicle_absent_mm: 2000   # Distance above this = vehicle absent
+    rapid_change_mm_per_sec: 500  # Rapid movement detection
+
+  # Sampling settings
+  sampling:
+    frequency_hz: 10  # Read sensor 10 times per second
+    smoothing_window: 5  # Moving average window
+
+  # Detection triggers
+  triggers:
+    # Send images when vehicle enters (ToF detects presence)
+    entry_event:
+      enabled: true
+      send_duration_seconds: 180  # Send images for 3 minutes
+      send_interval_seconds: 1  # Send 1 image per second
+
+    # Send image immediately when vehicle exits
+    exit_event:
+      enabled: true
+      send_immediate: true
+
+    # Periodic verification while vehicle is parked
+    periodic_check:
+      enabled: true
+      interval_seconds: 300  # Check every 5 minutes
+      send_duration_seconds: 10  # Send images for 10 seconds
+      send_interval_seconds: 1
+
+# Fallback behavior (if ToF sensor fails or disabled)
+fallback:
+  # Send images periodically even without ToF
+  periodic_capture:
+    enabled: true
+    interval_seconds: 60  # Capture every 60 seconds
+
+  # Alert if sensor fails
+  alert_on_tof_failure: true
+
+# Logging
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  file: "/var/log/smoothbox-camera.log"
+  max_size_mb: 50
+  backup_count: 3
+
+# Performance
+performance:
+  # Buffer settings
+  image_buffer_size: 10  # Max images to buffer if NVIDIA is unreachable
+
+  # Retry settings
+  retry:
+    max_attempts: 3
+    delay_seconds: 1
