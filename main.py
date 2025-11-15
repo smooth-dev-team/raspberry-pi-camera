@@ -9,6 +9,11 @@ Responsibilities:
 3. Capture images from Pi Camera
 4. Send images + spot_number to NVIDIA Orin
 5. Implement event-based triggering (entry, exit, verification)
+
+Note: Raspberry Pi sends images only. NVIDIA determines status codes:
+  - Status 0 = Entry (入庫) - Vehicle entering
+  - Status 1 = Verification (駐車中) - Periodic check while parked
+  - Status 2 = Exit (出庫) - Vehicle leaving
 """
 
 import asyncio
